@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "OFX Exporter",
-  "description": "Exporta para OFX extratos do itaucard",
+  "description": "Exporta para OFX extratos dos cartões de crédito",
   "version": "1.0",
   "background": {
     "scripts": [

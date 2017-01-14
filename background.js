@@ -46,16 +46,35 @@
 
 	'use strict';
 
-	var _app = __webpack_require__(1);
+	var _itaucard = __webpack_require__(1);
 
-	var _app2 = _interopRequireDefault(_app);
+	var _itaucard2 = _interopRequireDefault(_itaucard);
+
+	var _amex = __webpack_require__(2);
+
+	var _amex2 = _interopRequireDefault(_amex);
+
+	var _buildOFX = __webpack_require__(3);
+
+	var _buildOFX2 = _interopRequireDefault(_buildOFX);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	chrome.browserAction.onClicked.addListener(function (tab) {
-	    chrome.tabs.executeScript(null, {
-	        code: '(' + _app2.default + ')()'
-	    });
+	    var script = null;
+	    var name = null;
+	    if (tab.url.match(/americanexpressonline/)) {
+	        script = _amex2.default;
+	        name = 'amex';
+	    } else if (tab.url.match(/itaubankline\.itau\.com\.br/)) {
+	        script = _itaucard2.default;
+	        name = 'itaucard';
+	    }
+	    if (script) {
+	        chrome.tabs.executeScript(null, {
+	            code: '(' + _buildOFX2.default + ')((' + script + ')(), \'' + name + '\')'
+	        });
+	    }
 	});
 
 /***/ },
@@ -82,18 +101,6 @@
 	        return parseFloat(text.replace('.', '').replace(',', '.'));
 	    }
 
-	    function toMoney(v) {
-	        return v.toFixed(2);
-	    }
-
-	    function toDate(d) {
-	        return '' + d.getFullYear() + zeroPad(d.getMonth() + 1) + zeroPad(d.getDate()) + '100000';
-	    }
-
-	    function zeroPad(value) {
-	        return value < 10 ? '0' + value : value;
-	    }
-
 	    var transactions = [];
 	    document.querySelectorAll(s).forEach(function (row) {
 	        var cols = row.querySelectorAll('td');
@@ -113,26 +120,83 @@
 	            }
 	        }
 	    });
+	    return transactions;
+	};
 
-	    function buildOfx(transactions) {
-	        var ofxHeader = 'OFXHEADER:100\nDATA:OFXSGML\nVERSION:102\nSECURITY:NONE\nENCODING:USASCII\nCHARSET:1252\nCOMPRESSION:NONE\nOLDFILEUID:NONE\nNEWFILEUID:NONE\n\n<OFX>\n<SIGNONMSGSRSV1>\n<SONRS>\n<STATUS>\n<CODE>0\n<SEVERITY>INFO\n</STATUS>\n<DTSERVER>' + toDate(new Date()) + '[-03:EST]\n<LANGUAGE>POR\n</SONRS>\n</SIGNONMSGSRSV1>\n<BANKMSGSRSV1>\n<STMTTRNRS>\n<TRNUID>1001\n<STATUS>\n<CODE>0\n<SEVERITY>INFO\n</STATUS>\n<STMTRS>\n<CURDEF>BRL\n<BANKTRANLIST>\r\n';
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
 
-	        ofxHeader += transactions.map(function (_ref) {
-	            var date = _ref.date,
-	                value = _ref.value,
-	                description = _ref.description;
+	'use strict';
 
-	            return '<STMTTRN>\n<TRNTYPE>' + (value < 0 ? 'DEBIT' : 'CREDIT') + '\n<DTPOSTED>' + toDate(date) + '[-03:EST]\n<TRNAMT>' + toMoney(value) + '\n<MEMO>' + description + '\n</STMTTRN>\r\n';
-	        }).join("");
-
-	        return ofxHeader + '</BANKTRANLIST>\n</STMTRS>\n</STMTTRNRS>\n</BANKMSGSRSV1>\n</OFX>';
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.default = parseAmex;
+	// parse www.americanexpressonline.com.br/amex/extrato
+	function parseAmex() {
+	    function filter(e) {
+	        return e.querySelectorAll('td').length == 3;
 	    }
 
+	    var elements = [].slice.call(document.querySelectorAll('.sldLanctos table tr:not(.infoBarTit):not(.data)'));
+	    return elements.filter(filter).map(function (row) {
+	        var cols = [].slice.call(row.querySelectorAll('td')).map(function (col, i) {
+	            return col.innerText;
+	        });
+	        var date = cols[0].split("/");
+	        var description = cols[1].split("\n");
+	        return {
+	            date: new Date(date[2], parseInt(date[1]) - 1, date[0]),
+	            description: description[0].trim(),
+	            memo: (description[1] || '').trim(),
+	            value: parseFloat(cols[2].replace('R$', '').trim().replace('.', '').replace(',', '.'))
+	        };
+	    });
+	}
+	console.log(parseAmex());
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.default = buildOfx;
+	function buildOfx(transactions, name) {
+
+	    function toMoney(v) {
+	        return v.toFixed(2);
+	    }
+
+	    function toDate(d) {
+	        return '' + d.getFullYear() + zeroPad(d.getMonth() + 1) + zeroPad(d.getDate()) + '100000';
+	    }
+
+	    function zeroPad(value) {
+	        return value < 10 ? '0' + value : value;
+	    }
+
+	    var ofxHeader = 'OFXHEADER:100\nDATA:OFXSGML\nVERSION:102\nSECURITY:NONE\nENCODING:USASCII\nCHARSET:1252\nCOMPRESSION:NONE\nOLDFILEUID:NONE\nNEWFILEUID:NONE\n\n<OFX>\n<SIGNONMSGSRSV1>\n<SONRS>\n<STATUS>\n<CODE>0\n<SEVERITY>INFO\n</STATUS>\n<DTSERVER>' + toDate(new Date()) + '[-03:EST]\n<LANGUAGE>POR\n</SONRS>\n</SIGNONMSGSRSV1>\n<BANKMSGSRSV1>\n<STMTTRNRS>\n<TRNUID>1001\n<STATUS>\n<CODE>0\n<SEVERITY>INFO\n</STATUS>\n<STMTRS>\n<CURDEF>BRL\n<BANKTRANLIST>\r\n';
+
+	    ofxHeader += transactions.map(function (_ref) {
+	        var date = _ref.date,
+	            value = _ref.value,
+	            description = _ref.description;
+
+	        return '<STMTTRN>\n<TRNTYPE>' + (value < 0 ? 'DEBIT' : 'CREDIT') + '\n<DTPOSTED>' + toDate(date) + '[-03:EST]\n<TRNAMT>' + toMoney(value) + '\n<MEMO>' + description + '\n</STMTTRN>\r\n';
+	    }).join("");
+
+	    var content = ofxHeader + '</BANKTRANLIST>\n</STMTRS>\n</STMTTRNRS>\n</BANKMSGSRSV1>\n</OFX>';
+
 	    var a = document.createElement("a");
-	    a.download = "visa.ofx";
-	    a.href = "data:application/x-ofx;charset=utf-8," + encodeURIComponent(buildOfx(transactions));
+	    a.download = name + ".ofx";
+	    a.href = "data:application/x-ofx;charset=utf-8," + encodeURIComponent(content);
 	    a.click();
-	};
+	}
 
 /***/ }
 /******/ ]);
