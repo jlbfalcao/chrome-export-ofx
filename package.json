@@ -4,7 +4,8 @@
   "description": "",
   "main": "itaucard.js",
   "scripts": {
-    "test": "mocha --require babel-polyfill --compilers js:babel-core/register"
+    "test": "mocha --require babel-polyfill --compilers js:babel-core/register",
+    "build": "webpack --production"
   },
   "author": "",
   "license": "ISC",
