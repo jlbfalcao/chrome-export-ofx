@@ -16,8 +16,8 @@ Não publiquei o plugin ainda. Para utilizar, baixe esse repositório e inclua n
 * Clique em "Developer Mode"
 * E em "Load unpacked extension"
  
-![howto](./howto.png)
+![howto](./doc/howto.png)
 
 O ícone exporta o extrato que você estiver visualizando em .ofx
 
-![export](./export.png)
+![export](./doc/export.png)

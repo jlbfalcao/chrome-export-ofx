@@ -1,7 +1,13 @@
+var path = require('path');
+
 module.exports = {
-    entry: './plugin.js',
     output: {
-        filename: 'background.js'
+        path: path.join(__dirname, "dist"),
+        filename: "[name].js",
+    },
+    entry: {
+        itaucard: "./src/cards/itaucard",
+        amex: "./src/cards/amex"
     },
     module: {
         loaders: [{

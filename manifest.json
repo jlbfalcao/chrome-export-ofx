@@ -9,6 +9,24 @@
     ],
     "persistent": false
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.americanexpressonline.com.br/*"
+      ],
+      "js": [
+        "dist/amex.js"
+      ]
+    },
+    {
+      "matches": [
+        "https://itaubankline.itau.com.br/*"
+      ],
+      "js": [
+        "dist/itaucard.js"
+      ]
+    }
+  ],
   "browser_action": {
     "default_icon": "ofx.png"
   },
