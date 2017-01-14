@@ -7,6 +7,7 @@ Hoje exporta os seguintes extratos:
 
 * Itaucard
 * AmericanExpress
+* NuBank
 
 ## Como usar
 
