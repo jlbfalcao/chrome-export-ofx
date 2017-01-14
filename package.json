@@ -4,7 +4,7 @@
   "description": "",
   "main": "itaucard.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --require babel-polyfill --compilers js:babel-core/register"
   },
   "author": "",
   "license": "ISC",
@@ -12,8 +12,12 @@
     "babel-cli": "^6.18.0",
     "babel-core": "^6.21.0",
     "babel-loader": "^6.2.10",
+    "babel-polyfill": "^6.20.0",
     "babel-preset-env": "^1.1.4",
     "babel-preset-es2016": "^6.16.0",
+    "babel-preset-es2017": "^6.16.0",
+    "babel-preset-stage-3": "^6.17.0",
+    "mocha": "^3.2.0",
     "webpack": "^1.14.0"
   }
 }

@@ -46,6 +46,13 @@
 
 	'use strict';
 
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.parseDescription = exports.parseDate = undefined;
+
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }(); // parse www.americanexpressonline.com.br/amex/extrato
 
 	var _download = __webpack_require__(1);
@@ -64,14 +71,17 @@
 
 	var _extractRows2 = _interopRequireDefault(_extractRows);
 
+	var _parseDate = __webpack_require__(5);
+
+	var _parseDate2 = _interopRequireDefault(_parseDate);
+
+	var _parseDescription = __webpack_require__(7);
+
+	var _parseDescription2 = _interopRequireDefault(_parseDescription);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var SELECTOR = '.sldLanctos table tr:not(.infoBarTit):not(.data)';
-
-	function parseDate(date) {
-	    var dt = date.split('/');
-	    return new Date(dt[2], parseInt(dt[1]) - 1, dt[0]);
-	}
 
 	function parseAmexPage() {
 	    return (0, _extractRows2.default)(SELECTOR).filter(function (row) {
@@ -82,23 +92,26 @@
 	            description = _ref2[1],
 	            value = _ref2[2];
 
-	        return {
-	            date: parseDate(date),
-	            description: description.split("\n")[0].trim(),
-	            memo: (description.split("\n")[1] || '').trim(),
+	        return _extends({}, (0, _parseDescription2.default)(description), {
+	            date: (0, _parseDate2.default)(date),
 	            value: (0, _parseMoney2.default)(value)
-	        };
+	        });
 	    });
 	}
 
-	chrome.runtime.onMessage.addListener(function (_ref3) {
-	    var action = _ref3.action,
-	        url = _ref3.url;
+	if (typeof chrome != 'undefined') {
+	    chrome.runtime.onMessage.addListener(function (_ref3) {
+	        var action = _ref3.action,
+	            url = _ref3.url;
 
-	    if (action == 'export') {
-	        (0, _download2.default)('amex', (0, _ofx2.default)(parseAmexPage()));
-	    }
-	});
+	        if (action == 'export') {
+	            (0, _download2.default)('amex', (0, _ofx2.default)(parseAmexPage()));
+	        }
+	    });
+	}
+
+	exports.parseDate = _parseDate2.default;
+	exports.parseDescription = _parseDescription2.default;
 
 /***/ },
 /* 1 */
@@ -185,6 +198,67 @@
 	        });
 	    }); // convert NodeList to Array
 	}
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	exports.default = function (date) {
+	    var description = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+
+	    var extra = (0, _extraPayments2.default)(description);
+	    var dt = date.split('/');
+	    return new Date(dt[2], parseInt(dt[1] - 1) + extra, dt[0]);
+	};
+
+	var _extraPayments = __webpack_require__(6);
+
+	var _extraPayments2 = _interopRequireDefault(_extraPayments);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	exports.default = function (description) {
+	    var result = description.match(/PRESTACAO (\d+) DE (\d+)/);
+	    if (result) {
+	        return parseInt(result[1]) - 1;
+	    } else {
+	        return 0;
+	    }
+	};
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	exports.default = function (description) {
+	    var tokens = description.split("\n");
+	    return {
+	        description: tokens[0].trim(),
+	        memo: tokens.length > 1 ? tokens[1].trim() : ''
+	    };
+	};
 
 /***/ }
 /******/ ]);

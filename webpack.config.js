@@ -6,8 +6,8 @@ module.exports = {
         filename: "[name].js",
     },
     entry: {
-        itaucard: "./src/cards/itaucard",
-        amex: "./src/cards/amex"
+        itaucard: "./src/itaucard",
+        amex: "./src/amex"
     },
     module: {
         loaders: [{

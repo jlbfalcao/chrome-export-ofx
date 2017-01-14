@@ -46,6 +46,11 @@
 
 	'use strict';
 
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.parseDate = undefined;
+
 	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 	var _download = __webpack_require__(1);
@@ -64,21 +69,11 @@
 
 	var _extractRows2 = _interopRequireDefault(_extractRows);
 
+	var _parseDate = __webpack_require__(8);
+
+	var _parseDate2 = _interopRequireDefault(_parseDate);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function parseDate(text) {
-	    var _text$split = text.split('/'),
-	        _text$split2 = _slicedToArray(_text$split, 2),
-	        day = _text$split2[0],
-	        month = _text$split2[1];
-
-	    var date = new Date(new Date().getFullYear(), parseInt(month) - 1, parseInt(day));
-	    if (date.getTime() > new Date().getTime()) {
-	        return new Date(new Date().getFullYear() - 1, parseInt(month) - 1, parseInt(day));
-	    } else {
-	        return date;
-	    }
-	}
 
 	var SELECTOR = '#TRNcontainer01 > table:nth-child(12) > tbody > tr:nth-child(1) > td:nth-child(4) table tbody tr';
 
@@ -96,21 +91,25 @@
 	            value = _ref2[2];
 
 	        return {
-	            date: parseDate(date),
+	            date: (0, _parseDate2.default)(date, description),
 	            description: description,
 	            value: -(0, _parseMoney2.default)(value)
 	        };
 	    });
 	}
 
-	chrome.runtime.onMessage.addListener(function (_ref3) {
-	    var action = _ref3.action,
-	        url = _ref3.url;
+	if (typeof chrome != 'undefined') {
+	    chrome.runtime.onMessage.addListener(function (_ref3) {
+	        var action = _ref3.action,
+	            url = _ref3.url;
 
-	    if (action == 'export') {
-	        (0, _download2.default)('itaucard', (0, _ofx2.default)(parseItaucardPage()));
-	    }
-	});
+	        if (action == 'export') {
+	            (0, _download2.default)('itaucard', (0, _ofx2.default)(parseItaucardPage()));
+	        }
+	    });
+	}
+
+	exports.parseDate = _parseDate2.default;
 
 /***/ },
 /* 1 */
@@ -197,6 +196,64 @@
 	        });
 	    }); // convert NodeList to Array
 	}
+
+/***/ },
+/* 5 */,
+/* 6 */,
+/* 7 */,
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+	exports.default = function (text) {
+	    var description = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+
+	    var extra = (0, _extraPayments2.default)(description);
+
+	    var _text$split = text.split('/'),
+	        _text$split2 = _slicedToArray(_text$split, 2),
+	        day = _text$split2[0],
+	        month = _text$split2[1];
+
+	    var date = new Date(new Date().getFullYear(), parseInt(month) - 1, parseInt(day));
+	    if (date.getTime() > new Date().getTime()) {
+	        return new Date(new Date().getFullYear() - 1, parseInt(month) - 1 + extra, parseInt(day));
+	    } else {
+	        return new Date(new Date().getFullYear(), parseInt(month) - 1 + extra, parseInt(day));
+	    }
+	};
+
+	var _extraPayments = __webpack_require__(9);
+
+	var _extraPayments2 = _interopRequireDefault(_extraPayments);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/***/ },
+/* 9 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	exports.default = function (description) {
+	    var match = description.match(/(\d+)\/(\d+)/);
+	    if (match) {
+	        return parseInt(match[1]) - 1;
+	    } else {
+	        return 0;
+	    }
+	};
 
 /***/ }
 /******/ ]);
