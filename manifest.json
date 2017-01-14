@@ -25,6 +25,14 @@
       "js": [
         "dist/itaucard.js"
       ]
+    },
+    {
+      "matches": [
+        "https://conta.nubank.com.br/*"
+      ],
+      "js": [
+        "dist/nubank.js"
+      ]
     }
   ],
   "browser_action": {

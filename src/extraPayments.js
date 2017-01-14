@@ -1,5 +1,5 @@
-export default function (description) {
-    const match = description.match(/(\d+)\/(\d+)/);
+export default function (description, pattern) {
+    const match = description.match(pattern);
     if (match) {
         return parseInt(match[1]) - 1;
     } else {

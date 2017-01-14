@@ -4,7 +4,8 @@ import download from '../download';
 import buildOfx from '../ofx';
 import parseMoney from '../parseMoney';
 import extractRows from '../extractRows';
-import parseDate from './parseDate';
+import parseDate from '../parseDate';
+import extraPayments from '../extraPayments';
 import parseDescription from './parseDescription';
 
 const SELECTOR = '.sldLanctos table tr:not(.infoBarTit):not(.data)';
@@ -15,7 +16,7 @@ function parseAmexPage() {
         .filter(row => row.length == 3)
         .map(([date, description, value]) => ({
             ...(parseDescription(description)),
-            date: parseDate(date),
+            date: parseDate(date, 'DD/MM/YYYY', extraPayments(description, /PRESTACAO (\d+) DE (\d+)/)),
             value: parseMoney(value)
         }));
 }
@@ -28,4 +29,4 @@ if (typeof chrome != 'undefined') {
     });
 }
 
-export {parseDate, parseDescription}
+export {parseDescription}

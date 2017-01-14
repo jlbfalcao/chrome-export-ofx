@@ -46,15 +46,6 @@
 
 	'use strict';
 
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	exports.parseDescription = undefined;
-
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
-	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }(); // parse www.americanexpressonline.com.br/amex/extrato
-
 	var _download = __webpack_require__(1);
 
 	var _download2 = _interopRequireDefault(_download);
@@ -63,58 +54,36 @@
 
 	var _ofx2 = _interopRequireDefault(_ofx);
 
-	var _parseMoney = __webpack_require__(115);
-
-	var _parseMoney2 = _interopRequireDefault(_parseMoney);
-
-	var _extractRows = __webpack_require__(116);
-
-	var _extractRows2 = _interopRequireDefault(_extractRows);
-
 	var _parseDate = __webpack_require__(117);
 
 	var _parseDate2 = _interopRequireDefault(_parseDate);
 
-	var _extraPayments = __webpack_require__(118);
+	var _parseMoney = __webpack_require__(115);
 
-	var _extraPayments2 = _interopRequireDefault(_extraPayments);
-
-	var _parseDescription = __webpack_require__(119);
-
-	var _parseDescription2 = _interopRequireDefault(_parseDescription);
+	var _parseMoney2 = _interopRequireDefault(_parseMoney);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var SELECTOR = '.sldLanctos table tr:not(.infoBarTit):not(.data)';
-
-	function parseAmexPage() {
-	    return (0, _extractRows2.default)(SELECTOR).filter(function (row) {
-	        return row.length == 3;
-	    }).map(function (_ref) {
-	        var _ref2 = _slicedToArray(_ref, 3),
-	            date = _ref2[0],
-	            description = _ref2[1],
-	            value = _ref2[2];
-
-	        return _extends({}, (0, _parseDescription2.default)(description), {
-	            date: (0, _parseDate2.default)(date, 'DD/MM/YYYY', (0, _extraPayments2.default)(description, /PRESTACAO (\d+) DE (\d+)/)),
-	            value: (0, _parseMoney2.default)(value)
-	        });
+	function parsePage() {
+	    return [].slice.call(document.querySelectorAll('.md-tab-content:not(.ng-hide) .charges .charge')).map(function (row) {
+	        return {
+	            date: (0, _parseDate2.default)(row.querySelector('.time').innerText, 'DD MMM'),
+	            description: row.querySelector('.description').innerText,
+	            value: -(0, _parseMoney2.default)(row.querySelector('.amount').innerText)
+	        };
 	    });
 	}
 
 	if (typeof chrome != 'undefined') {
-	    chrome.runtime.onMessage.addListener(function (_ref3) {
-	        var action = _ref3.action,
-	            url = _ref3.url;
+	    chrome.runtime.onMessage.addListener(function (_ref) {
+	        var action = _ref.action,
+	            url = _ref.url;
 
 	        if (action == 'export') {
-	            (0, _download2.default)('amex', (0, _ofx2.default)(parseAmexPage()));
+	            (0, _download2.default)('nubank', (0, _ofx2.default)(parsePage()));
 	        }
 	    });
 	}
-
-	exports.parseDescription = _parseDescription2.default;
 
 /***/ },
 /* 1 */
@@ -15090,24 +15059,7 @@
 	}
 
 /***/ },
-/* 116 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	exports.default = extractRows;
-	function extractRows(selector) {
-	    return [].slice.call(document.querySelectorAll(selector)).map(function (row) {
-	        return [].slice.call(row.querySelectorAll('td')).map(function (c) {
-	            return c.innerText;
-	        });
-	    }); // convert NodeList to Array
-	}
-
-/***/ },
+/* 116 */,
 /* 117 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -15130,43 +15082,6 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	_moment2.default.locale('pt-BR');
-
-/***/ },
-/* 118 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-
-	exports.default = function (description, pattern) {
-	    var match = description.match(pattern);
-	    if (match) {
-	        return parseInt(match[1]) - 1;
-	    } else {
-	        return 0;
-	    }
-	};
-
-/***/ },
-/* 119 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-
-	exports.default = function (description) {
-	    var tokens = description.split("\n");
-	    return {
-	        description: tokens[0].trim(),
-	        memo: tokens.length > 1 ? tokens[1].trim() : ''
-	    };
-	};
 
 /***/ }
 /******/ ]);

@@ -1,19 +1,7 @@
-export default function buildOfx(transactions, name) {
+import buildTransaction from './buildTransaction';
+import moment from 'moment';
 
-    function toMoney(v) {
-        return v.toFixed(2);
-    }
-
-    function toDate(d) {
-        return `${d.getFullYear()}${zeroPad(d.getMonth() + 1)}${zeroPad(d.getDate())}100000`;
-    }
-
-    function zeroPad(value) {
-        return (value < 10) ? `0${value}` : value;
-    }
-
-
-    var ofxHeader = `OFXHEADER:100
+export default (transactions) => `OFXHEADER:100
 DATA:OFXSGML
 VERSION:102
 SECURITY:NONE
@@ -30,7 +18,7 @@ NEWFILEUID:NONE
 <CODE>0
 <SEVERITY>INFO
 </STATUS>
-<DTSERVER>${toDate(new Date())}[-03:EST]
+<DTSERVER>${moment().format('YYYYMMDD')}100000[-03:EST]
 <LANGUAGE>POR
 </SONRS>
 </SIGNONMSGSRSV1>
@@ -43,21 +31,12 @@ NEWFILEUID:NONE
 </STATUS>
 <STMTRS>
 <CURDEF>BRL
-<BANKTRANLIST>\r\n`;
+<BANKTRANLIST>
 
-    ofxHeader += transactions.map(({date, value, description}) => {
-        return `<STMTTRN>
-<TRNTYPE>${value < 0 ? 'DEBIT' : 'CREDIT'}
-<DTPOSTED>${toDate(date)}[-03:EST]
-<TRNAMT>${toMoney(value)}
-<MEMO>${description}
-</STMTTRN>\r\n`
-    }).join("");
+${transactions.map(buildTransaction).join("\r\n")}
 
-    return `${ofxHeader}</BANKTRANLIST>
+</BANKTRANLIST>
 </STMTRS>
 </STMTTRNRS>
 </BANKMSGSRSV1>
 </OFX>`;
-
-}

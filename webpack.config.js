@@ -7,7 +7,8 @@ module.exports = {
     },
     entry: {
         itaucard: "./src/itaucard",
-        amex: "./src/amex"
+        amex: "./src/amex",
+        nubank: "./src/nubank"
     },
     module: {
         loaders: [{
